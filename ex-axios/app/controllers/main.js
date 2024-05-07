@@ -1,5 +1,5 @@
 const BASE_URL = "https://66337e28f7d50bbd9b498fc5.mockapi.io/products";
-
+var foodEditId = null;
 // gọi api lấy danh sách sản phẩm
 function fetchProducts() {
   turnOnLoading();
@@ -42,21 +42,12 @@ function deleteProduct(id) {
 // thêm  sp
 function createFood() {
   // lấy thông tin từ form
-  var name = document.getElementById("TenSP").value;
-  var price = document.getElementById("GiaSP").value;
-  var img = document.getElementById("HinhSP").value;
-  var desc = document.getElementById("MoTaSP").value;
-  var product = {
-    name: name,
-    price: price,
-    img: img,
-    desc: desc,
-  };
+
   // method POST
   axios({
     url: BASE_URL,
     method: "POST",
-    data: product,
+    data: getDataForm(),
   })
     .then(function (res) {
       // tắt modal sau khi thêm thành công
@@ -69,6 +60,48 @@ function createFood() {
       console.log(err);
     });
 }
+// sửa sp ( lấy chi tiết theo id )
+function editFood(id) {
+  foodEditId = id;
+  document.querySelector(".modal-title").innerText = `ID : ${foodEditId}`;
+  // gọi api lấy chi tiết theo id
+
+  axios({
+    url: `${BASE_URL}/${id}`,
+    method: "GET",
+  })
+    .then(function (res) {
+      // show data lên form
+      $("#myModal").modal("show");
+      var food = res.data;
+      document.getElementById("TenSP").value = food.name;
+      document.getElementById("GiaSP").value = food.price;
+      document.getElementById("HinhSP").value = food.img;
+      document.getElementById("MoTaSP").value = food.desc;
+    })
+    .catch(function (err) {
+      console.log(err);
+    });
+}
+
+// cập nhật sản phẩm
+function updateFood() {
+  // method PUT
+  // lấy thông tin từ form
+  axios({
+    url: `${BASE_URL}/${foodEditId}`,
+    method: "PUT",
+    data: getDataForm(),
+  })
+    .then(function (res) {
+      console.log("😀 - res", res);
+      // fetch data mới nhất từ server
+      fetchProducts();
+      // ẩn modal
+      $("#myModal").modal("hide");
+    })
+    .catch(function (err) {});
+}
 
 /**
  *
@@ -76,7 +109,6 @@ function createFood() {
  * POST: tạo mới
  * PUT: cập nhật
  * DELETE: xoá
- *
  */
 
 // callback hell
